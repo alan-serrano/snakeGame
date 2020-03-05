@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import './Grid.scss';
 import Snake from './Snake';
 // Creating the instance of the snake
-let s = new Snake();
+const snake = new Snake();
 
 
 function Grid({size}) {
@@ -14,11 +14,11 @@ function Grid({size}) {
     useEffect( () => {
         // Creating a setTimeOut to simulate the speed of the snake
         const id = setTimeout(() => {
-            s.update();
+            snake.update();
 
             let coordR1C1 = {};
 
-            for (const coord of s.tail) {
+            for (const coord of snake.tail) {
                 coordR1C1[`r${coord.y}c${coord.x}`] = null;
             }
 
@@ -51,30 +51,30 @@ function Grid({size}) {
 
         // UP
         if(e.keyCode === 38) {
-            if( s.ySpeed === 0 ) {
-                s.ySpeed = -1;
-                s.xSpeed = 0;
+            if( snake.ySpeed === 0 ) {
+                snake.ySpeed = -1;
+                snake.xSpeed = 0;
             }
         }
         // Right
         if(e.keyCode === 39) {
-            if(s.xSpeed === 0) {
-                s.ySpeed = 0;
-                s.xSpeed = 1;
+            if(snake.xSpeed === 0) {
+                snake.ySpeed = 0;
+                snake.xSpeed = 1;
             }
         }
         // Down
         if(e.keyCode === 40) {
-            if(s.ySpeed === 0) {
-                s.ySpeed = 1;
-                s.xSpeed = 0;
+            if(snake.ySpeed === 0) {
+                snake.ySpeed = 1;
+                snake.xSpeed = 0;
             }
         }
         // Left
         if(e.keyCode === 37) {
-            if(s.xSpeed === 0) {
-                s.ySpeed = 0;
-                s.xSpeed = -1;
+            if(snake.xSpeed === 0) {
+                snake.ySpeed = 0;
+                snake.xSpeed = -1;
             }
         }
     }
