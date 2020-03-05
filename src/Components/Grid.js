@@ -1,8 +1,31 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import './Grid.scss';
+import Snake from './Snake';
+// Creating the instance of the snake
+let s = new Snake();
 
-function Grid({size, coordSnake}) {
+
+function Grid({size}) {
     size = parseInt(size);
+
+    // coordSnake is an object that has the coordinates of each part of the snake
+    const [coordSnake, setCoordSnake] = useState({'r0c0': null});
+    
+    useEffect( () => {
+        // Creating a setTimeOut to simulate the speed of the snake
+        const id = setTimeout(() => {
+            s.update();
+            let coordR1C1 = {
+                [`r${s.y}c${s.x}`]: null
+            };
+
+            setCoordSnake(coordR1C1);
+        }, 500);
+
+        return () => {
+            clearTimeout(id);
+        };
+    } )
 
     // Creating and empty array in order to map over them
     let rows = new Array(size).fill();
@@ -12,7 +35,6 @@ function Grid({size, coordSnake}) {
     const rowStyles = {
         height: 1/size*100 + '%'
     }
-
     
     rows = rows.map( (value, row) =>
         <Row key={row} style={rowStyles}>
@@ -22,8 +44,41 @@ function Grid({size, coordSnake}) {
         </Row>
     );
     
+    const handleOnKeyPress = (e) => {
+        console.log(e.keyCode);
+
+        // UP
+        if(e.keyCode === 38) {
+            if( s.ySpeed === 0 ) {
+                s.ySpeed = -1;
+                s.xSpeed = 0;
+            }
+        }
+        // Right
+        if(e.keyCode === 39) {
+            if(s.xSpeed === 0) {
+                s.ySpeed = 0;
+                s.xSpeed = 1;
+            }
+        }
+        // Down
+        if(e.keyCode === 40) {
+            if(s.ySpeed === 0) {
+                s.ySpeed = 1;
+                s.xSpeed = 0;
+            }
+        }
+        // Left
+        if(e.keyCode === 37) {
+            if(s.xSpeed === 0) {
+                s.ySpeed = 0;
+                s.xSpeed = -1;
+            }
+        }
+    }
+    
     return (
-        <div className="grid">
+        <div className="grid" tabIndex="0" onKeyDown={handleOnKeyPress}>
             {rows}
         </div>
     );
