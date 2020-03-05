@@ -10,14 +10,17 @@ function Grid({size}) {
 
     // coordSnake is an object that has the coordinates of each part of the snake
     const [coordSnake, setCoordSnake] = useState({'r0c0': null});
-    
+
     useEffect( () => {
         // Creating a setTimeOut to simulate the speed of the snake
         const id = setTimeout(() => {
             s.update();
-            let coordR1C1 = {
-                [`r${s.y}c${s.x}`]: null
-            };
+
+            let coordR1C1 = {};
+
+            for (const coord of s.tail) {
+                coordR1C1[`r${coord.y}c${coord.x}`] = null;
+            }
 
             setCoordSnake(coordR1C1);
         }, 500);
@@ -45,7 +48,6 @@ function Grid({size}) {
     );
     
     const handleOnKeyPress = (e) => {
-        console.log(e.keyCode);
 
         // UP
         if(e.keyCode === 38) {
