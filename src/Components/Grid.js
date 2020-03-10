@@ -20,7 +20,7 @@ function Grid({size}) {
     useEffect( () => {
         food.current = new Food(size - 1);
         setCoordFood(food.current.getR1C1()); // Setting the first value of the food
-        snake.current = new Snake();
+        snake.current = new Snake(size - 1);
     }, [size]);
 
     // Handling the speed of the snake
@@ -28,19 +28,23 @@ function Grid({size}) {
         const id = setTimeout(() => {
             snake.current.update(); // Update the position of the snake
 
-            // If the head of the snake is on food position
-            if(snake.current.getHeadR1C1() === food.current.getR1C1()) {
-                
-                // The food position should not be the same as the snake
-                while( snake.current.getR1C1().hasOwnProperty( food.current.getR1C1() ) ) {
-                    food.current.show();
-                } 
-                setCoordFood(food.current.getR1C1()); // Setting the state of food
-                snake.current.grow(); // Snake grows
-            }
+            let gameOver = snake.current.isDeath;
 
-            setCoordSnake(snake.current.getR1C1());
-        }, 500);
+            if( !gameOver ) {
+                // If the head of the snake is on food position
+                if (snake.current.getHeadR1C1() === food.current.getR1C1()) {
+
+                    // The food position should not be the same as the snake
+                    while (snake.current.getR1C1().hasOwnProperty(food.current.getR1C1())) {
+                        food.current.show();
+                    }
+                    setCoordFood(food.current.getR1C1()); // Setting the state of food
+                    snake.current.grow(); // Snake grows
+                }
+
+                setCoordSnake(snake.current.getR1C1());
+            }
+        }, 100);
 
         return () => {
             clearTimeout(id);

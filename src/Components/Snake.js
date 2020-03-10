@@ -3,12 +3,35 @@ export default class Snake {
     /**
      * It creates a snake,
      */
-    constructor() {
+    constructor(limit) {
         this.x = 0;
         this.y = 0;
         this.xSpeed = 1;
         this.ySpeed = 0;
-        this.tail = [{x:0, y:0}]
+        this.tail = [{x:0, y:0}];
+        this.limit = limit;
+    }
+
+    get isDeath() {
+        // It dies when it exceeds the limits of the grid
+        if(this.x > this.limit || this.x < 0) {
+            return true;
+        }
+
+        if(this.y > this.limit || this.y < 0) {
+            return true;
+        }
+
+        // It dies when it crosses some part of its tail
+        for(let i = 0; i < this.tail.length - 1; i++) {
+            let address = this.tail[i];
+
+            if(this.x === address.x && this.y === address.y) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
