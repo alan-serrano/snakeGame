@@ -1,4 +1,8 @@
+/** Class representing a snake  */
 export default class Snake {
+    /**
+     * It creates a snake,
+     */
     constructor() {
         this.x = 0;
         this.y = 0;
@@ -7,6 +11,9 @@ export default class Snake {
         this.tail = [{x:0, y:0}]
     }
 
+    /**
+     * Moves the snake by xSpeed and ySpeed settings and updates the tail of the snake
+     */
     update() {
         this.x += this.xSpeed;
         this.y += this.ySpeed;
@@ -22,8 +29,34 @@ export default class Snake {
         this.tail[this.tail.length - 1] = {x: this.x, y: this.y};
     }
 
+    /**
+     * Adds a new set of positions {x, y} in the head of the snake
+     */
     grow() {
-        // Add the last address
-        this.tail.unshift(this.tail[0]);
+        // Add food at head
+        this.tail.push(this.tail[this.tail.length - 1]);
+    }
+
+    /**
+     * @return {Object.<string, null>} -    Returns an object in the form {'r0c0': null, 'r1c0': null, ...}
+     *                                      where "r" mean row and "c" mean column, the numbers of the strings are the position.
+     *                                      This works like a hash map
+     */
+
+    getR1C1() {
+        let coordR1C1 = {};
+        for (const coord of this.tail) {
+            coordR1C1[`r${coord.y}c${coord.x}`] = null;
+        }
+
+        return coordR1C1;
+    }
+    
+    /**
+     * @return {string} -   Returns a string in the form "r0c0" where "r" mean row and "c" mean column,
+     *                      the numbers 0 of the strings are the position of the row and column in the Grid
+     */
+    getHeadR1C1() {
+        return `r${this.y}c${this.x}`
     }
 }
