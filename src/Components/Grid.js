@@ -1,80 +1,101 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import './Grid.scss';
 import Snake from './Snake';
-// Creating the instance of the snake
-const snake = new Snake();
-
+import Food from './Food';
 
 function Grid({size}) {
     size = parseInt(size);
-
+    
     // coordSnake is an object that has the coordinates of each part of the snake
     const [coordSnake, setCoordSnake] = useState({'r0c0': null});
 
+    // coordFood is an object that has the coordinates of the food
+    const [coordFood, setCoordFood] = useState('');
+    
+    // Creating instance of the food and the snake
+    const food = useRef();
+    const snake = useRef();
+
+    // Handling the creation of the instances of Food and Snake
     useEffect( () => {
-        // Creating a setTimeOut to simulate the speed of the snake
+        food.current = new Food(size - 1);
+        setCoordFood(food.current.getR1C1()); // Setting the first value of the food
+        snake.current = new Snake(size - 1);
+    }, [size]);
+
+    // Handling the speed of the snake
+    useEffect( () => {
         const id = setTimeout(() => {
-            snake.update();
+            snake.current.update(); // Update the position of the snake
 
-            let coordR1C1 = {};
+            let gameOver = snake.current.isDeath;
 
-            for (const coord of snake.tail) {
-                coordR1C1[`r${coord.y}c${coord.x}`] = null;
+            if( !gameOver ) {
+                // If the head of the snake is on food position
+                if (snake.current.getHeadR1C1() === food.current.getR1C1()) {
+
+                    // The food position should not be the same as the snake
+                    while (snake.current.getR1C1().hasOwnProperty(food.current.getR1C1())) {
+                        food.current.show();
+                    }
+                    setCoordFood(food.current.getR1C1()); // Setting the state of food
+                    snake.current.grow(); // Snake grows
+                }
+
+                setCoordSnake(snake.current.getR1C1());
             }
-
-            setCoordSnake(coordR1C1);
-        }, 500);
+        }, 100);
 
         return () => {
             clearTimeout(id);
         };
-    } )
+    }, [coordSnake]);
 
     // Creating and empty array in order to map over them
     let rows = new Array(size).fill();
     let columns = new Array(size).fill();
-
-    // Styles
-    const rowStyles = {
-        height: 1/size*100 + '%'
-    }
     
     rows = rows.map( (value, row) =>
-        <Row key={row} style={rowStyles}>
+        <Row key={row} size={size}>
             { columns.map( (value, column) =>
-                <Column key={column} size={size} propKey={`r${row}c${column}`} coordSnake={coordSnake}/>
+                <Column
+                    key={column}
+                    size={size}
+                    propKey={`r${row}c${column}`}
+                    coordSnake={coordSnake}
+                    coordFood={coordFood}
+                />
             )}
         </Row>
     );
     
     const handleOnKeyPress = (e) => {
-
         // UP
         if(e.keyCode === 38) {
-            if( snake.ySpeed === 0 ) {
-                snake.ySpeed = -1;
-                snake.xSpeed = 0;
+            if( snake.current.ySpeed === 0 ) {
+                snake.current.ySpeed = -1;
+                snake.current.xSpeed = 0;
             }
         }
         // Right
         if(e.keyCode === 39) {
-            if(snake.xSpeed === 0) {
-                snake.ySpeed = 0;
-                snake.xSpeed = 1;
+            if(snake.current.xSpeed === 0) {
+                snake.current.ySpeed = 0;
+                snake.current.xSpeed = 1;
             }
         }
         // Down
         if(e.keyCode === 40) {
-            if(snake.ySpeed === 0) {
-                snake.ySpeed = 1;
-                snake.xSpeed = 0;
+            if(snake.current.ySpeed === 0) {
+                snake.current.ySpeed = 1;
+                snake.current.xSpeed = 0;
             }
         }
         // Left
         if(e.keyCode === 37) {
-            if(snake.xSpeed === 0) {
-                snake.ySpeed = 0;
-                snake.xSpeed = -1;
+            if(snake.current.xSpeed === 0) {
+                snake.current.ySpeed = 0;
+                snake.current.xSpeed = -1;
             }
         }
     }
@@ -87,25 +108,33 @@ function Grid({size}) {
 }
 
 // Rows and Columns
-function Row({style, children}) {
+function Row({size, children}) {
+        // Styles
+    const rowStyles = {
+        height: 1/size*100 + '%'
+    }
+
     return (
-        <div className="row" style={style}>
+        <div className="row" style={rowStyles}>
             {children}
         </div>
     );
 }
 
-function Column({size, coordSnake, propKey}) {
-    const columnStyles1 = {
+function Column({size, coordSnake, coordFood, propKey}) {
+    const columnStyles = {
         flexBasis: 1/size*100 + '%'
     }
 
-    const columnStyles2 = {
-        flexBasis: 1/size*100 + '%',
-        backgroundColor: 'white'
+    if(coordSnake.hasOwnProperty(propKey)) {
+        columnStyles.backgroundColor = 'white'
     }
     
-    return <div className="column" style={(coordSnake.hasOwnProperty(propKey) ? columnStyles2 : columnStyles1)}></div>;
+    if(coordFood === propKey) {
+        columnStyles.backgroundColor = 'green'
+    }
+    
+    return <div className="column" style={columnStyles}></div>;
 }
 
 export default Grid;
