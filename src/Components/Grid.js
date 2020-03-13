@@ -6,40 +6,45 @@ import Food from './Food';
 function Grid({size}) {
     size = parseInt(size);
     
-    // coordSnake is an object that has the coordinates of each part of the snake
-    const [coordSnake, setCoordSnake] = useState({'r0c0': null});
-
-    // coordFood is an object that has the coordinates of the food
-    const [coordFood, setCoordFood] = useState('');
-    
-    // Creating instance of the food and the snake
+    const [isStart, setIsStart] = useState(false);
+    const [isGameOver, setIsGameOver] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
     const food = useRef();
     const snake = useRef();
+    
+    useEffect(function initializeSnake() {
+        if(isStart) {
+            food.current = new Food(size - 1);
+            setCoordFood(food.current.getR1C1()); // Setting the first value of the food
+            snake.current = new Snake(size - 1);
+        }
+    }, [size, isStart]);
+    
+    const [coordFood, setCoordFood] = useState('');
+    const [coordSnake, setCoordSnake] = useState({'r0c0': null});
+    const [score, setScore] = useState(0);
 
-    // Handling the creation of the instances of Food and Snake
-    useEffect( () => {
-        food.current = new Food(size - 1);
-        setCoordFood(food.current.getR1C1()); // Setting the first value of the food
-        snake.current = new Snake(size - 1);
-    }, [size]);
+    useEffect(function speedUpSnake() {
+        if(!isStart || isPaused) return;
 
-    // Handling the speed of the snake
-    useEffect( () => {
         const id = setTimeout(() => {
-            snake.current.update(); // Update the position of the snake
+            snake.current.update();
 
             let gameOver = snake.current.isDeath;
 
-            if( !gameOver ) {
-                // If the head of the snake is on food position
+            if( gameOver ) {
+                setIsGameOver(true);
+                setIsStart(false);
+                
+            } else {
                 if (snake.current.getHeadR1C1() === food.current.getR1C1()) {
 
-                    // The food position should not be the same as the snake
                     while (snake.current.getR1C1().hasOwnProperty(food.current.getR1C1())) {
-                        food.current.show();
+                        food.current.changePosition();
                     }
-                    setCoordFood(food.current.getR1C1()); // Setting the state of food
-                    snake.current.grow(); // Snake grows
+                    setScore((prevScore) => prevScore + 10);
+                    setCoordFood(food.current.getR1C1());
+                    snake.current.grow();
                 }
 
                 setCoordSnake(snake.current.getR1C1());
@@ -49,9 +54,16 @@ function Grid({size}) {
         return () => {
             clearTimeout(id);
         };
-    }, [coordSnake]);
+    }, [coordSnake, isStart, isPaused]);
 
-    // Creating and empty array in order to map over them
+    useEffect(function onKeyPressGlobal() {
+        document.addEventListener('keydown', handleOnKeyPress);
+
+        return () => {
+            document.removeEventListener('keydown', handleOnKeyPress);
+        }
+    })
+
     let rows = new Array(size).fill();
     let columns = new Array(size).fill();
     
@@ -69,7 +81,7 @@ function Grid({size}) {
         </Row>
     );
     
-    const handleOnKeyPress = (e) => {
+    function handleOnKeyPress(e) {
         // UP
         if(e.keyCode === 38) {
             if( snake.current.ySpeed === 0 ) {
@@ -77,39 +89,80 @@ function Grid({size}) {
                 snake.current.xSpeed = 0;
             }
         }
-        // Right
+        // RIGTH
         if(e.keyCode === 39) {
             if(snake.current.xSpeed === 0) {
                 snake.current.ySpeed = 0;
                 snake.current.xSpeed = 1;
             }
         }
-        // Down
+        // DOWN
         if(e.keyCode === 40) {
             if(snake.current.ySpeed === 0) {
                 snake.current.ySpeed = 1;
                 snake.current.xSpeed = 0;
             }
         }
-        // Left
+        // LEFT
         if(e.keyCode === 37) {
             if(snake.current.xSpeed === 0) {
                 snake.current.ySpeed = 0;
                 snake.current.xSpeed = -1;
             }
         }
+
+        // ESC
+        if(e.keyCode === 27 && isStart) {
+            setIsPaused(isPaused => !isPaused);
+        }
+    }
+
+    function onClickStart() {
+        setIsStart(true);
+        setIsGameOver(false);
+        setScore(0);
+    }
+    
+    function onClickContinue() {
+        setIsPaused(prev => !prev);
     }
     
     return (
-        <div className="grid" tabIndex="0" onKeyDown={handleOnKeyPress}>
+        <div className="grid">
             {rows}
+            <p className="score">
+                SCORE: {score}
+            </p>
+
+            { !isStart &&
+                <div className='info'>
+                    {isGameOver &&
+                        <div className="game-over">
+                            <p>GAME OVER</p>
+                            <p>Your score: {score}</p>
+                        </div>
+                    }
+
+                    <button className="btn-start-new-game" onClick={onClickStart}>
+                        Start a new Game
+                    </button>
+                </div>
+            }
+
+            { (isStart && isPaused) &&
+                <div className="info paused">
+                    <button className="btn-start-new-game" onClick={onClickContinue}>
+                            Continue the game
+                    </button>
+                </div>
+            }
+
         </div>
     );
 }
 
-// Rows and Columns
+/* COMPONENT ROW */
 function Row({size, children}) {
-        // Styles
     const rowStyles = {
         height: 1/size*100 + '%'
     }
@@ -121,20 +174,23 @@ function Row({size, children}) {
     );
 }
 
+/* COMPONENT COLUMN */
 function Column({size, coordSnake, coordFood, propKey}) {
     const columnStyles = {
         flexBasis: 1/size*100 + '%'
     }
 
+    let classNames = 'column';
+
     if(coordSnake.hasOwnProperty(propKey)) {
-        columnStyles.backgroundColor = 'white'
+        classNames += ' snake'
     }
     
     if(coordFood === propKey) {
-        columnStyles.backgroundColor = 'green'
+        classNames += ' food'
     }
     
-    return <div className="column" style={columnStyles}></div>;
+    return <div className={classNames} style={columnStyles}></div>;
 }
 
 export default Grid;
