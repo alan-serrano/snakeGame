@@ -1,10 +1,33 @@
 export default class Snake {
-    constructor() {
+    constructor(limit) {
         this.x = 0;
         this.y = 0;
         this.xSpeed = 1;
         this.ySpeed = 0;
-        this.tail = [{x:0, y:0}]
+        this.tail = [{x:0, y:0}];
+        this.limit = limit;
+    }
+
+    get isDeath() {
+        // When it exceeds the limits of the grid
+        if(this.x > this.limit || this.x < 0) {
+            return true;
+        }
+
+        if(this.y > this.limit || this.y < 0) {
+            return true;
+        }
+
+        // When it crosses some part of its tail
+        for(let i = 0; i < this.tail.length - 1; i++) {
+            let address = this.tail[i];
+
+            if(this.x === address.x && this.y === address.y) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     update() {
@@ -23,7 +46,19 @@ export default class Snake {
     }
 
     grow() {
-        // Add the last address
-        this.tail.unshift(this.tail[0]);
+        this.tail.push(this.tail[this.tail.length - 1]);
+    }
+
+    getR1C1() {
+        let coordR1C1 = {};
+        for (const coord of this.tail) {
+            coordR1C1[`r${coord.y}c${coord.x}`] = null;
+        }
+
+        return coordR1C1;
+    }
+    
+    getHeadR1C1() {
+        return `r${this.y}c${this.x}`
     }
 }

@@ -5,7 +5,8 @@ import Grid from './Components/Grid';
 function App() {
     return (
         <div className="app">
-            <Grid size="32"/>
+            <h1>Snake Game</h1>
+            <Grid size="24"/>
         </div>
     );
 }
